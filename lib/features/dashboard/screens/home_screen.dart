@@ -1,0 +1,324 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:moodscope/features/auth/provider/auth_provider.dart';
+import 'package:moodscope/features/dashboard/screens/dashboard_screen.dart';
+import 'package:moodscope/features/diary/screens/diary_screen.dart';
+import 'package:moodscope/features/emotion_detection/screens/emotion_detection_screen.dart';
+import 'package:moodscope/features/music/screens/music_screen.dart';
+import 'package:provider/provider.dart';
+
+import '../../../core/theme/app_theme.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../main.dart'; // Import to access global cameras list
+
+import '../widgets/bottom_nav_bar.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+  late PageController _pageController;
+
+  // Updated to pass cameras to EmotionDetectionScreen
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+
+    // Initialize screens with cameras parameter
+    _screens = [
+      const HomeTabScreen(),
+      EmotionDetectionScreen(cameras: cameras), // Pass global cameras list
+      const DiaryScreen(),
+      const DashboardScreen(),
+      const MusicScreen(),
+    ];
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    _pageController.animateToPage(index, duration: AppConstants.shortAnimationDuration, curve: Curves.easeInOut);
+  }
+
+  void _onPageChanged(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: PageView(controller: _pageController, onPageChanged: _onPageChanged, children: _screens),
+      bottomNavigationBar: CustomBottomNavBar(currentIndex: _currentIndex, onTap: _onTabTapped),
+    );
+  }
+}
+
+class HomeTabScreen extends StatelessWidget {
+  const HomeTabScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppConstants.paddingLarge),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Consumer<AuthProvider>(
+                builder: (context, authProvider, child) {
+                  final user = authProvider.user;
+                  final userName = user?.displayName ?? 'User';
+                  final greeting = _getGreeting();
+
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              greeting,
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              userName,
+                              style: Theme.of(context).textTheme.displaySmall?.copyWith(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          gradient: AppTheme.primaryGradient,
+                          borderRadius: BorderRadius.circular(25),
+                          boxShadow: [BoxShadow(color: AppTheme.primaryColor.withOpacity(0.3), blurRadius: 12, spreadRadius: 2)],
+                        ),
+                        child: user?.photoURL != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(25),
+                                child: Image.network(user!.photoURL!, fit: BoxFit.cover),
+                              )
+                            : Center(
+                                child: Text(
+                                  userName.substring(0, 1).toUpperCase(),
+                                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                      ),
+                    ],
+                  );
+                },
+              ).animate().slideY(begin: -0.5, duration: 600.ms, curve: Curves.easeOut).fadeIn(),
+
+              const SizedBox(height: AppConstants.paddingExtraLarge),
+
+              // Quick Actions Grid
+              Text(
+                'Quick Actions',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
+              ).animate().slideX(begin: -0.5, delay: 200.ms, duration: 500.ms).fadeIn(delay: 200.ms),
+
+              const SizedBox(height: AppConstants.paddingMedium),
+
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 1.2,
+                children: [
+                  _QuickActionCard(
+                    title: 'Detect Emotion',
+                    subtitle: 'Analyze your current mood',
+                    icon: Icons.camera_alt_rounded,
+                    gradient: AppTheme.primaryGradient,
+                    onTap: () {
+                      // Navigate to emotion detection tab
+                      final homeScreenState = context.findAncestorStateOfType<_HomeScreenState>();
+                      homeScreenState?._onTabTapped(1); // Index 1 is EmotionDetectionScreen
+                    },
+                  ).animate().scale(delay: 300.ms, duration: 500.ms, curve: Curves.easeOut).fadeIn(delay: 300.ms),
+
+                  _QuickActionCard(
+                    title: 'Emotion Diary',
+                    subtitle: 'View your emotional journey',
+                    icon: Icons.book_rounded,
+                    gradient: AppTheme.accentGradient,
+                    onTap: () {
+                      // Navigate to diary tab
+                      final homeScreenState = context.findAncestorStateOfType<_HomeScreenState>();
+                      homeScreenState?._onTabTapped(2); // Index 2 is DiaryScreen
+                    },
+                  ).animate().scale(delay: 400.ms, duration: 500.ms, curve: Curves.easeOut).fadeIn(delay: 400.ms),
+
+                  _QuickActionCard(
+                    title: 'Analytics',
+                    subtitle: 'Insights & trends',
+                    icon: Icons.analytics_rounded,
+                    gradient: const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF059669)]),
+                    onTap: () {
+                      // Navigate to dashboard tab
+                      final homeScreenState = context.findAncestorStateOfType<_HomeScreenState>();
+                      homeScreenState?._onTabTapped(3); // Index 3 is DashboardScreen
+                    },
+                  ).animate().scale(delay: 500.ms, duration: 500.ms, curve: Curves.easeOut).fadeIn(delay: 500.ms),
+
+                  _QuickActionCard(
+                    title: 'Music Therapy',
+                    subtitle: 'Mood-based playlists',
+                    icon: Icons.music_note_rounded,
+                    gradient: const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFD97706)]),
+                    onTap: () {
+                      // Navigate to music tab
+                      final homeScreenState = context.findAncestorStateOfType<_HomeScreenState>();
+                      homeScreenState?._onTabTapped(4); // Index 4 is MusicScreen
+                    },
+                  ).animate().scale(delay: 600.ms, duration: 500.ms, curve: Curves.easeOut).fadeIn(delay: 600.ms),
+                ],
+              ),
+
+              const SizedBox(height: AppConstants.paddingExtraLarge),
+
+              // Daily Mood Section
+              Text(
+                'Today\'s Mood Journey',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
+              ).animate().slideX(begin: -0.5, delay: 700.ms, duration: 500.ms).fadeIn(delay: 700.ms),
+
+              const SizedBox(height: AppConstants.paddingMedium),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Colors.white, Colors.white.withOpacity(0.9)]),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, spreadRadius: 5)],
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(gradient: AppTheme.primaryGradient, borderRadius: BorderRadius.circular(30)),
+                          child: const Icon(Icons.timeline_rounded, color: Colors.white, size: 30),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Emotional Timeline',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 4),
+                              Text('Track your emotions throughout the day', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      height: 80,
+                      decoration: BoxDecoration(color: AppTheme.backgroundColor, borderRadius: BorderRadius.circular(12)),
+                      child: const Center(
+                        child: Text(
+                          'Start detecting emotions to see your timeline',
+                          style: TextStyle(color: AppTheme.textSecondary, fontStyle: FontStyle.italic),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ).animate().slideY(begin: 0.3, delay: 800.ms, duration: 600.ms, curve: Curves.easeOut).fadeIn(delay: 800.ms),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning 🌅';
+    if (hour < 17) return 'Good Afternoon ☀️';
+    if (hour < 21) return 'Good Evening 🌆';
+    return 'Good Night 🌙';
+  }
+}
+
+class _QuickActionCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final LinearGradient gradient;
+  final VoidCallback onTap;
+
+  const _QuickActionCard({required this.title, required this.subtitle, required this.icon, required this.gradient, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: gradient.colors.first.withOpacity(0.3), blurRadius: 12, spreadRadius: 2)],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(icon, color: Colors.white, size: 32),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 12, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

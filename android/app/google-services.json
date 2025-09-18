@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "478296170395",
+    "project_id": "moodscope-app",
+    "storage_bucket": "moodscope-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:478296170395:android:c25ccf8d816f3d46638b3e",
+        "android_client_info": {
+          "package_name": "com.example.moodscope"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOIc6KKQO46noxF414J-2kmVmCc9JXYvo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
