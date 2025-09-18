@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:moodscope/core/utils/toast_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/app_constants.dart';
@@ -42,7 +42,10 @@ class AuthProvider extends ChangeNotifier {
       _setLoading(true);
       _setError(null);
 
-      final UserCredential result = await _auth.signInWithEmailAndPassword(email: email.trim(), password: password);
+      final UserCredential result = await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
 
       if (result.user != null) {
         await _saveUserData(result.user!);
@@ -60,12 +63,19 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> signUpWithEmail(String email, String password, String name) async {
+  Future<bool> signUpWithEmail(
+    String email,
+    String password,
+    String name,
+  ) async {
     try {
       _setLoading(true);
       _setError(null);
 
-      final UserCredential result = await _auth.createUserWithEmailAndPassword(email: email.trim(), password: password);
+      final UserCredential result = await _auth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
 
       if (result.user != null) {
         // Update display name
@@ -83,41 +93,6 @@ class AuthProvider extends ChangeNotifier {
       return false;
     } catch (e) {
       _setError('An unexpected error occurred. Please try again.');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  Future<bool> signInWithGoogle() async {
-    try {
-      _setLoading(true);
-      _setError(null);
-
-      // final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      // if (googleUser == null) {
-      //   _setLoading(false);
-      //   return false; // User cancelled the sign-in
-      // }
-
-      // final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-      // final credential = GoogleAuthProvider.credential(accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
-
-      // final UserCredential result = await _auth.signInWithCredential(credential);
-
-      // if (result.user != null) {
-      //   // Check if this is a new user
-      //   if (result.additionalUserInfo?.isNewUser ?? false) {
-      //     await _createUserDocument(result.user!, result.user!.displayName ?? 'User');
-      //   }
-
-      //   await _saveUserData(result.user!);
-      //   return true;
-      // }
-      return false;
-    } catch (e) {
-      _setError('Google sign-in failed. Please try again.');
       return false;
     } finally {
       _setLoading(false);
@@ -160,18 +135,21 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> _createUserDocument(User user, String name) async {
     try {
-      await _firestore.collection(AppConstants.usersCollection).doc(user.uid).set({
-        'uid': user.uid,
-        'name': name,
-        'email': user.email,
-        'photoURL': user.photoURL,
-        'createdAt': FieldValue.serverTimestamp(),
-        'lastLoginAt': FieldValue.serverTimestamp(),
-        'totalEmotionEntries': 0,
-        'favoriteEmotion': 'neutral',
-      });
+      await _firestore
+          .collection(AppConstants.usersCollection)
+          .doc(user.uid)
+          .set({
+            'uid': user.uid,
+            'name': name,
+            'email': user.email,
+            'photoURL': user.photoURL,
+            'createdAt': FieldValue.serverTimestamp(),
+            'lastLoginAt': FieldValue.serverTimestamp(),
+            'totalEmotionEntries': 0,
+            'favoriteEmotion': 'neutral',
+          });
     } catch (e) {
-      print('Error creating user document: $e');
+      ToastUtils.showErrorToast(message: e.toString());
     }
   }
 
@@ -181,10 +159,11 @@ class AuthProvider extends ChangeNotifier {
       await prefs.setString(AppConstants.userIdKey, user.uid);
 
       // Update last login time
-      await _firestore.collection(AppConstants.usersCollection).doc(user.uid).update({'lastLoginAt': FieldValue.serverTimestamp()});
-    } catch (e) {
-      print('Error saving user data: $e');
-    }
+      await _firestore
+          .collection(AppConstants.usersCollection)
+          .doc(user.uid)
+          .update({'lastLoginAt': FieldValue.serverTimestamp()});
+    } catch (e) {}
   }
 
   String _getErrorMessage(String errorCode) {

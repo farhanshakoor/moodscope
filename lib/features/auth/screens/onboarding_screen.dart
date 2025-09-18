@@ -34,13 +34,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setBool(AppConstants.isFirstTimeKey, false);
 
     if (mounted) {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
     }
   }
 
   void _nextPage() {
     if (_currentPage < AppConstants.onboardingSteps.length - 1) {
-      _pageController.nextPage(duration: AppConstants.mediumAnimationDuration, curve: Curves.easeInOut);
+      _pageController.nextPage(
+        duration: AppConstants.mediumAnimationDuration,
+        curve: Curves.easeInOut,
+      );
     } else {
       _finishOnboarding();
     }
@@ -67,7 +72,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onPressed: _skipOnboarding,
                     child: Text(
                       'Skip',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
@@ -81,7 +89,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   itemCount: AppConstants.onboardingSteps.length,
                   itemBuilder: (context, index) {
                     final step = AppConstants.onboardingSteps[index];
-                    return _OnboardingPage(title: step['title']!, subtitle: step['subtitle']!, description: step['description']!, imagePath: step['image']!, index: index);
+                    return _OnboardingPage(
+                      title: step['title']!,
+                      subtitle: step['subtitle']!,
+                      description: step['description']!,
+                      imagePath: step['image']!,
+                      index: index,
+                    );
                   },
                 ),
               ),
@@ -94,7 +108,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     // Page Indicators
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(AppConstants.onboardingSteps.length, (index) => _PageIndicator(isActive: index == _currentPage)),
+                      children: List.generate(
+                        AppConstants.onboardingSteps.length,
+                        (index) =>
+                            _PageIndicator(isActive: index == _currentPage),
+                      ),
                     ),
 
                     const SizedBox(height: AppConstants.paddingLarge),
@@ -107,11 +125,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryColor,
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: Text(
-                          _currentPage == AppConstants.onboardingSteps.length - 1 ? 'Get Started' : 'Next',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                          _currentPage ==
+                                  AppConstants.onboardingSteps.length - 1
+                              ? 'Get Started'
+                              : 'Next',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -133,60 +160,117 @@ class _OnboardingPage extends StatelessWidget {
   final String imagePath;
   final int index;
 
-  const _OnboardingPage({required this.title, required this.subtitle, required this.description, required this.imagePath, required this.index});
+  const _OnboardingPage({
+    required this.title,
+    required this.subtitle,
+    required this.description,
+    required this.imagePath,
+    required this.index,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppConstants.paddingLarge,
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Illustration Container
           Container(
-            width: 280,
-            height: 280,
-            decoration: BoxDecoration(
-              gradient: AppTheme.primaryGradient,
-              borderRadius: BorderRadius.circular(140),
-              boxShadow: [BoxShadow(color: AppTheme.primaryColor.withOpacity(0.3), blurRadius: 30, spreadRadius: 10)],
-            ),
-            child: _getIllustrationIcon(index),
-          ).animate().scale(delay: 200.ms, duration: 800.ms, curve: Curves.elasticOut).fadeIn(duration: 600.ms),
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(140),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withAlpha(
+                        (0.3 * 255).toInt(),
+                      ),
+                      blurRadius: 30,
+                      spreadRadius: 10,
+                    ),
+                  ],
+                ),
+                child: _getIllustrationIcon(index),
+              )
+              .animate()
+              .scale(delay: 200.ms, duration: 800.ms, curve: Curves.elasticOut)
+              .fadeIn(duration: 600.ms),
 
           const SizedBox(height: AppConstants.paddingExtraLarge),
 
           // Title
           Text(
-            title,
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-            textAlign: TextAlign.center,
-          ).animate().slideY(begin: 0.5, delay: 400.ms, duration: 600.ms, curve: Curves.easeOutBack).fadeIn(delay: 400.ms),
+                title,
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+              )
+              .animate()
+              .slideY(
+                begin: 0.5,
+                delay: 400.ms,
+                duration: 600.ms,
+                curve: Curves.easeOutBack,
+              )
+              .fadeIn(delay: 400.ms),
 
           const SizedBox(height: AppConstants.paddingSmall),
 
           // Subtitle
           Text(
-            subtitle,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.primaryColor, fontWeight: FontWeight.w600),
-            textAlign: TextAlign.center,
-          ).animate().slideY(begin: 0.5, delay: 500.ms, duration: 600.ms, curve: Curves.easeOutBack).fadeIn(delay: 500.ms),
+                subtitle,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: AppTheme.primaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              )
+              .animate()
+              .slideY(
+                begin: 0.5,
+                delay: 500.ms,
+                duration: 600.ms,
+                curve: Curves.easeOutBack,
+              )
+              .fadeIn(delay: 500.ms),
 
           const SizedBox(height: AppConstants.paddingMedium),
 
           // Description
           Text(
-            description,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary, height: 1.5),
-            textAlign: TextAlign.center,
-          ).animate().slideY(begin: 0.5, delay: 600.ms, duration: 600.ms, curve: Curves.easeOutBack).fadeIn(delay: 600.ms),
+                description,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppTheme.textSecondary,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              )
+              .animate()
+              .slideY(
+                begin: 0.5,
+                delay: 600.ms,
+                duration: 600.ms,
+                curve: Curves.easeOutBack,
+              )
+              .fadeIn(delay: 600.ms),
         ],
       ),
     );
   }
 
   Widget _getIllustrationIcon(int index) {
-    final icons = [Icons.psychology_alt_rounded, Icons.camera_alt_rounded, Icons.analytics_rounded, Icons.music_note_rounded];
+    final icons = [
+      Icons.psychology_alt_rounded,
+      Icons.camera_alt_rounded,
+      Icons.analytics_rounded,
+      Icons.music_note_rounded,
+    ];
 
     return Icon(icons[index], size: 120, color: Colors.white);
   }
@@ -200,10 +284,22 @@ class _PageIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      height: 8,
-      width: isActive ? 24 : 8,
-      decoration: BoxDecoration(color: isActive ? AppTheme.primaryColor : AppTheme.textTertiary, borderRadius: BorderRadius.circular(4)),
-    ).animate().scale(duration: AppConstants.shortAnimationDuration, curve: Curves.easeInOut).slideX(duration: AppConstants.shortAnimationDuration, curve: Curves.easeInOut);
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          height: 8,
+          width: isActive ? 24 : 8,
+          decoration: BoxDecoration(
+            color: isActive ? AppTheme.primaryColor : AppTheme.textTertiary,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        )
+        .animate()
+        .scale(
+          duration: AppConstants.shortAnimationDuration,
+          curve: Curves.easeInOut,
+        )
+        .slideX(
+          duration: AppConstants.shortAnimationDuration,
+          curve: Curves.easeInOut,
+        );
   }
 }

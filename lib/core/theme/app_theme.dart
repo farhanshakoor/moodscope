@@ -14,11 +14,23 @@ class AppTheme {
   static const Color textTertiary = Color(0xFF94A3B8);
 
   // Gradient Colors
-  static const LinearGradient primaryGradient = LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [primaryColor, secondaryColor]);
+  static const LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [primaryColor, secondaryColor],
+  );
 
-  static const LinearGradient accentGradient = LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [secondaryColor, accentColor]);
+  static const LinearGradient accentGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [secondaryColor, accentColor],
+  );
 
-  static const LinearGradient backgroundGradient = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFF1F5F9), Color(0xFFE2E8F0)]);
+  static const LinearGradient backgroundGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFFF1F5F9), Color(0xFFE2E8F0)],
+  );
 
   // Emotion Colors
   static const Map<String, Color> emotionColors = {
@@ -35,7 +47,10 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(seedColor: primaryColor, brightness: Brightness.light),
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primaryColor,
+        brightness: Brightness.light,
+      ),
       fontFamily: 'Poppins',
       scaffoldBackgroundColor: backgroundColor,
 
@@ -45,7 +60,12 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         foregroundColor: textPrimary,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
-        titleTextStyle: TextStyle(color: textPrimary, fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
+        titleTextStyle: TextStyle(
+          color: textPrimary,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          fontFamily: 'Poppins',
+        ),
       ),
 
       // Card Theme
@@ -62,10 +82,16 @@ class AppTheme {
           foregroundColor: Colors.white,
           backgroundColor: primaryColor,
           elevation: 4,
-          shadowColor: primaryColor.withOpacity(0.3),
+          shadowColor: primaryColor.withAlpha((0.3 * 255).toInt()),
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            fontFamily: 'Poppins',
+          ),
         ),
       ),
 
@@ -74,7 +100,11 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: primaryColor,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
+          textStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            fontFamily: 'Poppins',
+          ),
         ),
       ),
 
@@ -84,11 +114,15 @@ class AppTheme {
         fillColor: surfaceColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: textTertiary.withOpacity(0.3)),
+          borderSide: BorderSide(
+            color: textTertiary.withAlpha((0.3 * 255).toInt()),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: textTertiary.withOpacity(0.3)),
+          borderSide: BorderSide(
+            color: textTertiary.withAlpha((0.3 * 255).toInt()),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -98,8 +132,15 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.red, width: 1),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        hintStyle: TextStyle(color: textTertiary, fontSize: 14, fontWeight: FontWeight.w400),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+        hintStyle: TextStyle(
+          color: textTertiary,
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+        ),
       ),
 
       // Bottom Navigation Bar Theme
@@ -116,21 +157,96 @@ class AppTheme {
 
       // Text Theme
       textTheme: const TextTheme(
-        displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: textPrimary, fontFamily: 'Poppins'),
-        displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w600, color: textPrimary, fontFamily: 'Poppins'),
-        displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: textPrimary, fontFamily: 'Poppins'),
-        headlineLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: textPrimary, fontFamily: 'Poppins'),
-        headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: textPrimary, fontFamily: 'Poppins'),
-        headlineSmall: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: textPrimary, fontFamily: 'Poppins'),
-        titleLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary, fontFamily: 'Poppins'),
-        titleMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: textPrimary, fontFamily: 'Poppins'),
-        titleSmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textSecondary, fontFamily: 'Poppins'),
-        bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400, color: textPrimary, fontFamily: 'Poppins'),
-        bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: textSecondary, fontFamily: 'Poppins'),
-        bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: textTertiary, fontFamily: 'Poppins'),
-        labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: textPrimary, fontFamily: 'Poppins'),
-        labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: textSecondary, fontFamily: 'Poppins'),
-        labelSmall: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: textTertiary, fontFamily: 'Poppins'),
+        displayLarge: TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.w700,
+          color: textPrimary,
+          fontFamily: 'Poppins',
+        ),
+        displayMedium: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+          fontFamily: 'Poppins',
+        ),
+        displaySmall: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+          fontFamily: 'Poppins',
+        ),
+        headlineLarge: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+          fontFamily: 'Poppins',
+        ),
+        headlineMedium: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+          fontFamily: 'Poppins',
+        ),
+        headlineSmall: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+          fontFamily: 'Poppins',
+        ),
+        titleLarge: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+          fontFamily: 'Poppins',
+        ),
+        titleMedium: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+          fontFamily: 'Poppins',
+        ),
+        titleSmall: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: textSecondary,
+          fontFamily: 'Poppins',
+        ),
+        bodyLarge: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          color: textPrimary,
+          fontFamily: 'Poppins',
+        ),
+        bodyMedium: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          color: textSecondary,
+          fontFamily: 'Poppins',
+        ),
+        bodySmall: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+          color: textTertiary,
+          fontFamily: 'Poppins',
+        ),
+        labelLarge: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: textPrimary,
+          fontFamily: 'Poppins',
+        ),
+        labelMedium: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: textSecondary,
+          fontFamily: 'Poppins',
+        ),
+        labelSmall: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+          color: textTertiary,
+          fontFamily: 'Poppins',
+        ),
       ),
     );
   }

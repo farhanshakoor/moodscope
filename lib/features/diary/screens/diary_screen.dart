@@ -1,5 +1,8 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:moodscope/core/utils/toast_utils.dart';
 import 'package:moodscope/features/diary/widgets/add_diary_dialog.dart';
 import 'package:moodscope/features/diary/widgets/diary_entry_card.dart';
 import 'package:provider/provider.dart';
@@ -32,16 +35,27 @@ class _DiaryScreenState extends State<DiaryScreen> {
       context: context,
       builder: (context) => AddDiaryDialog(
         onSave: (title, content, mood, tags) async {
+          if (!mounted) return; // Check if widget is still mounted
+
           final diaryProvider = context.read<DiaryProvider>();
-          final success = await diaryProvider.addDiaryEntry(title: title, content: content, mood: mood, tags: tags);
+          final success = await diaryProvider.addDiaryEntry(
+            title: title,
+            content: content,
+            mood: mood,
+            tags: tags,
+          );
 
           if (success && mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Diary entry saved! ${AppConstants.emotionEmojis[mood] ?? ''}'),
+                content: Text(
+                  'Diary entry saved! ${AppConstants.emotionEmojis[mood] ?? ''}',
+                ),
                 backgroundColor: AppTheme.primaryColor,
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             );
           }
@@ -59,89 +73,151 @@ class _DiaryScreenState extends State<DiaryScreen> {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.all(AppConstants.paddingLarge),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Emotion Diary',
-                          style: Theme.of(context).textTheme.displaySmall?.copyWith(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
+                  padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Emotion Diary',
+                              style: Theme.of(context).textTheme.displaySmall
+                                  ?.copyWith(
+                                    color: AppTheme.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Track your emotional journey',
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(color: AppTheme.textSecondary),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
-                        Text('Track your emotional journey', style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary)),
-                      ],
-                    ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: AppTheme.primaryGradient,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.primaryColor.withAlpha(
+                                (0.3 * 255).toInt(),
+                              ),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          onPressed: _showAddDiaryDialog,
+                          icon: const Icon(
+                            Icons.add_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            padding: const EdgeInsets.all(12),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: AppTheme.primaryGradient,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [BoxShadow(color: AppTheme.primaryColor.withOpacity(0.3), blurRadius: 8, spreadRadius: 2)],
-                    ),
-                    child: IconButton(
-                      onPressed: _showAddDiaryDialog,
-                      icon: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
-                      style: IconButton.styleFrom(backgroundColor: Colors.transparent, padding: const EdgeInsets.all(12)),
-                    ),
-                  ),
-                ],
-              ),
-            ).animate().slideY(begin: -0.5, duration: 600.ms, curve: Curves.easeOut).fadeIn(),
+                )
+                .animate()
+                .slideY(begin: -0.5, duration: 600.ms, curve: Curves.easeOut)
+                .fadeIn(),
 
             // Search and Filter Section
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
-              child: Column(
-                children: [
-                  // Search Bar
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, spreadRadius: 2)],
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Search your diary...',
-                        prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.textSecondary),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        hintStyle: TextStyle(color: AppTheme.textTertiary, fontSize: 14),
-                      ),
-                    ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppConstants.paddingLarge,
                   ),
-
-                  const SizedBox(height: 16),
-
-                  // Mood Filter
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _MoodFilterChip(label: 'All', emoji: '📖', isSelected: _selectedMoodFilter == 'all', onSelected: () => setState(() => _selectedMoodFilter = 'all')),
-                        ...AppConstants.emotionLabels.map(
-                          (emotion) => _MoodFilterChip(
-                            label: emotion.toUpperCase(),
-                            emoji: AppConstants.emotionEmojis[emotion] ?? '😐',
-                            isSelected: _selectedMoodFilter == emotion,
-                            onSelected: () => setState(() => _selectedMoodFilter = emotion),
+                  child: Column(
+                    children: [
+                      // Search Bar
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(
+                                (0.05 * 255).toInt(),
+                              ),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Search your diary...',
+                            prefixIcon: const Icon(
+                              Icons.search_rounded,
+                              color: AppTheme.textSecondary,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                            hintStyle: TextStyle(
+                              color: AppTheme.textTertiary,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Mood Filter
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _MoodFilterChip(
+                              label: 'All',
+                              emoji: '📖',
+                              isSelected: _selectedMoodFilter == 'all',
+                              onSelected: () =>
+                                  setState(() => _selectedMoodFilter = 'all'),
+                            ),
+                            ...AppConstants.emotionLabels.map(
+                              (emotion) => _MoodFilterChip(
+                                label: emotion.toUpperCase(),
+                                emoji:
+                                    AppConstants.emotionEmojis[emotion] ?? '😐',
+                                isSelected: _selectedMoodFilter == emotion,
+                                onSelected: () => setState(
+                                  () => _selectedMoodFilter = emotion,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ).animate().slideY(begin: 0.3, delay: 200.ms, duration: 500.ms, curve: Curves.easeOut).fadeIn(delay: 200.ms),
+                )
+                .animate()
+                .slideY(
+                  begin: 0.3,
+                  delay: 200.ms,
+                  duration: 500.ms,
+                  curve: Curves.easeOut,
+                )
+                .fadeIn(delay: 200.ms),
 
             const SizedBox(height: AppConstants.paddingLarge),
 
@@ -153,7 +229,11 @@ class _DiaryScreenState extends State<DiaryScreen> {
                     stream: diaryProvider.getDiaryEntriesStream(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor));
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: AppTheme.primaryColor,
+                          ),
+                        );
                       }
 
                       if (snapshot.hasError) {
@@ -161,9 +241,17 @@ class _DiaryScreenState extends State<DiaryScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.error_outline_rounded, size: 64, color: Colors.red.shade300),
+                              Icon(
+                                Icons.error_outline_rounded,
+                                size: 64,
+                                color: Colors.red.shade300,
+                              ),
                               const SizedBox(height: 16),
-                              Text('Error loading diary entries', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.textSecondary)),
+                              Text(
+                                'Error loading diary entries',
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(color: AppTheme.textSecondary),
+                              ),
                             ],
                           ),
                         );
@@ -176,15 +264,25 @@ class _DiaryScreenState extends State<DiaryScreen> {
                         entries = entries
                             .where(
                               (entry) =>
-                                  entry.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                                  entry.content.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                                  entry.tags.any((tag) => tag.toLowerCase().contains(_searchQuery.toLowerCase())),
+                                  entry.title.toLowerCase().contains(
+                                    _searchQuery.toLowerCase(),
+                                  ) ||
+                                  entry.content.toLowerCase().contains(
+                                    _searchQuery.toLowerCase(),
+                                  ) ||
+                                  entry.tags.any(
+                                    (tag) => tag.toLowerCase().contains(
+                                      _searchQuery.toLowerCase(),
+                                    ),
+                                  ),
                             )
                             .toList();
                       }
 
                       if (_selectedMoodFilter != 'all') {
-                        entries = entries.where((entry) => entry.mood == _selectedMoodFilter).toList();
+                        entries = entries
+                            .where((entry) => entry.mood == _selectedMoodFilter)
+                            .toList();
                       }
 
                       if (entries.isEmpty) {
@@ -192,16 +290,28 @@ class _DiaryScreenState extends State<DiaryScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.book_outlined, size: 64, color: AppTheme.textTertiary),
+                              Icon(
+                                Icons.book_outlined,
+                                size: 64,
+                                color: AppTheme.textTertiary,
+                              ),
                               const SizedBox(height: 16),
                               Text(
-                                _searchQuery.isNotEmpty || _selectedMoodFilter != 'all' ? 'No entries found' : 'No diary entries yet',
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.textSecondary),
+                                _searchQuery.isNotEmpty ||
+                                        _selectedMoodFilter != 'all'
+                                    ? 'No entries found'
+                                    : 'No diary entries yet',
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(color: AppTheme.textSecondary),
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                _searchQuery.isNotEmpty || _selectedMoodFilter != 'all' ? 'Try different search terms or filters' : 'Start writing your emotional journey',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppTheme.textTertiary),
+                                _searchQuery.isNotEmpty ||
+                                        _selectedMoodFilter != 'all'
+                                    ? 'Try different search terms or filters'
+                                    : 'Start writing your emotional journey',
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: AppTheme.textTertiary),
                               ),
                             ],
                           ),
@@ -209,7 +319,9 @@ class _DiaryScreenState extends State<DiaryScreen> {
                       }
 
                       return ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppConstants.paddingLarge,
+                        ),
                         itemCount: entries.length,
                         itemBuilder: (context, index) {
                           final entry = entries[index];
@@ -217,13 +329,16 @@ class _DiaryScreenState extends State<DiaryScreen> {
                                 entry: entry,
                                 onEdit: () {},
                                 onDelete: () async {
-                                  final shouldDelete = await _showDeleteConfirmation(context);
-                                  if (shouldDelete == true) {
-                                    final success = await diaryProvider.deleteDiaryEntry(entry.id);
+                                  final shouldDelete =
+                                      await _showDeleteConfirmation(context);
+                                  if (shouldDelete == true && mounted) {
+                                    final success = await diaryProvider
+                                        .deleteDiaryEntry(entry.id);
                                     if (success && mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(const SnackBar(content: Text('Diary entry deleted'), backgroundColor: Colors.red, behavior: SnackBarBehavior.floating));
+                                      ToastUtils.showSuccessToast(
+                                        message: 'Diary entry deleted',
+                                        context: context,
+                                      );
                                     }
                                   }
                                 },
@@ -235,7 +350,9 @@ class _DiaryScreenState extends State<DiaryScreen> {
                                 duration: 500.ms,
                                 curve: Curves.easeOut,
                               )
-                              .fadeIn(delay: Duration(milliseconds: index * 100));
+                              .fadeIn(
+                                delay: Duration(milliseconds: index * 100),
+                              );
                         },
                       );
                     },
@@ -254,9 +371,14 @@ class _DiaryScreenState extends State<DiaryScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Entry'),
-        content: const Text('Are you sure you want to delete this diary entry? This action cannot be undone.'),
+        content: const Text(
+          'Are you sure you want to delete this diary entry? This action cannot be undone.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -274,7 +396,12 @@ class _MoodFilterChip extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onSelected;
 
-  const _MoodFilterChip({required this.label, required this.emoji, required this.isSelected, required this.onSelected});
+  const _MoodFilterChip({
+    required this.label,
+    required this.emoji,
+    required this.isSelected,
+    required this.onSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -288,7 +415,11 @@ class _MoodFilterChip extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               label,
-              style: TextStyle(color: isSelected ? Colors.white : AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 12),
+              style: TextStyle(
+                color: isSelected ? Colors.white : AppTheme.textPrimary,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
             ),
           ],
         ),
@@ -296,7 +427,9 @@ class _MoodFilterChip extends StatelessWidget {
         onSelected: (_) => onSelected(),
         selectedColor: AppTheme.primaryColor,
         backgroundColor: Colors.white,
-        side: BorderSide(color: isSelected ? AppTheme.primaryColor : Colors.grey.shade200),
+        side: BorderSide(
+          color: isSelected ? AppTheme.primaryColor : Colors.grey.shade200,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
     );

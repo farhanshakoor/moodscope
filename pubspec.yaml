@@ -1,11 +1,10 @@
 name: moodscope
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
-  sdk: ^3.9.2
-
+  sdk: ">=3.9.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -16,6 +15,7 @@ dependencies:
   fl_chart:
   lottie:
   glassmorphism:
+  toastification:
 
   # State Management
   provider:
@@ -25,10 +25,10 @@ dependencies:
   firebase_auth:
   cloud_firestore:
   firebase_storage:
-  google_sign_in:
 
   # Camera & ML
   camera:
+
   # tflite_v2:
   tflite_flutter: ^0.11.0
   image:
@@ -42,8 +42,6 @@ dependencies:
   http:
   url_launcher:
 
-  
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -51,7 +49,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
 
   assets:
     - assets/

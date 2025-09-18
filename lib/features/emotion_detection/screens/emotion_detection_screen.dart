@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:moodscope/core/utils/toast_utils.dart';
 import 'package:moodscope/features/emotion_detection/widgets/emotion_detection_card.dart';
 import 'package:moodscope/features/emotion_detection/widgets/save_emotion_dialog.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +18,8 @@ class EmotionDetectionScreen extends StatefulWidget {
   State<EmotionDetectionScreen> createState() => _EmotionDetectionScreenState();
 }
 
-class _EmotionDetectionScreenState extends State<EmotionDetectionScreen> with TickerProviderStateMixin {
+class _EmotionDetectionScreenState extends State<EmotionDetectionScreen>
+    with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _rippleController;
 
@@ -29,8 +31,14 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen> with Ti
   }
 
   void _initializeAnimations() {
-    _pulseController = AnimationController(duration: const Duration(seconds: 2), vsync: this)..repeat();
-    _rippleController = AnimationController(duration: const Duration(milliseconds: 1500), vsync: this);
+    _pulseController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat();
+    _rippleController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
   }
 
   void _initializeDetection() async {
@@ -63,13 +71,10 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen> with Ti
         onSave: (note) async {
           final success = await emotionProvider.saveEmotionEntry(note: note);
           if (success && mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Emotion saved successfully! ${AppConstants.emotionEmojis[emotionProvider.currentEmotion] ?? ''}'),
-                backgroundColor: AppTheme.primaryColor,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+            ToastUtils.showSuccessToast(
+              message:
+                  'Emotion saved successfully! ${AppConstants.emotionEmojis[emotionProvider.currentEmotion] ?? ''}',
+              context: context,
             );
             _rippleController.forward().then((_) {
               _rippleController.reset();
@@ -94,7 +99,10 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen> with Ti
             },
             child: const Text('Retry'),
           ),
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
         ],
       ),
     );
@@ -120,81 +128,156 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen> with Ti
                 children: [
                   // Header
                   Padding(
-                    padding: const EdgeInsets.all(AppConstants.paddingLarge),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.arrow_back_ios_rounded),
-                          style: IconButton.styleFrom(backgroundColor: Colors.white.withOpacity(0.2), foregroundColor: Colors.white),
+                        padding: const EdgeInsets.all(
+                          AppConstants.paddingLarge,
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            'Emotion Detection',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        // Status indicators
-                        Row(
+                        child: Row(
                           children: [
-                            Icon(emotionProvider.isModelLoaded ? Icons.check_circle : Icons.pending, color: emotionProvider.isModelLoaded ? Colors.green : Colors.orange, size: 20),
-                            const SizedBox(width: 4),
-                            Icon(
-                              emotionProvider.isCameraInitialized ? Icons.videocam : Icons.videocam_off,
-                              color: emotionProvider.isCameraInitialized ? Colors.green : Colors.red,
-                              size: 20,
+                            IconButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              icon: const Icon(Icons.arrow_back_ios_rounded),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.white.withAlpha(
+                                  (0.2 * 255).toInt(),
+                                ),
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                'Emotion Detection',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ),
+                            // Status indicators
+                            Row(
+                              children: [
+                                Icon(
+                                  emotionProvider.isModelLoaded
+                                      ? Icons.check_circle
+                                      : Icons.pending,
+                                  color: emotionProvider.isModelLoaded
+                                      ? Colors.green
+                                      : Colors.orange,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  emotionProvider.isCameraInitialized
+                                      ? Icons.videocam
+                                      : Icons.videocam_off,
+                                  color: emotionProvider.isCameraInitialized
+                                      ? Colors.green
+                                      : Colors.red,
+                                  size: 20,
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ).animate().slideY(begin: -0.5, duration: 600.ms, curve: Curves.easeOutBack).fadeIn(),
+                      )
+                      .animate()
+                      .slideY(
+                        begin: -0.5,
+                        duration: 600.ms,
+                        curve: Curves.easeOutBack,
+                      )
+                      .fadeIn(),
 
                   // Camera Preview Section
                   Expanded(
                     flex: 3,
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20, spreadRadius: 5)],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: emotionProvider.isCameraInitialized && emotionProvider.cameraController != null
-                            ? Stack(
-                                children: [
-                                  // Camera Preview
-                                  SizedBox.expand(
-                                    child: FittedBox(
-                                      fit: BoxFit.cover,
-                                      child: SizedBox(
-                                        width: emotionProvider.cameraController!.value.previewSize?.height ?? 1,
-                                        height: emotionProvider.cameraController!.value.previewSize?.width ?? 1,
-                                        child: CameraPreview(emotionProvider.cameraController!),
-                                      ),
+                    child:
+                        Container(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: AppConstants.paddingLarge,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withAlpha(
+                                      (0.3 * 255).toInt(),
                                     ),
-                                  ),
-
-                                  // Detection Overlay
-                                  if (emotionProvider.isDetecting) _buildDetectionOverlay(),
-
-                                  // Ripple Effect
-                                  AnimatedBuilder(
-                                    animation: _rippleController,
-                                    builder: (context, child) {
-                                      return CustomPaint(
-                                        painter: _RipplePainter(animation: _rippleController, color: AppTheme.emotionColors[emotionProvider.currentEmotion] ?? Colors.white),
-                                        size: Size.infinite,
-                                      );
-                                    },
+                                    blurRadius: 20,
+                                    spreadRadius: 5,
                                   ),
                                 ],
-                              )
-                            : _buildCameraPlaceholder(emotionProvider),
-                      ),
-                    ).animate().scale(delay: 200.ms, duration: 800.ms, curve: Curves.elasticOut).fadeIn(),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(24),
+                                child:
+                                    emotionProvider.isCameraInitialized &&
+                                        emotionProvider.cameraController != null
+                                    ? Stack(
+                                        children: [
+                                          // Camera Preview
+                                          SizedBox.expand(
+                                            child: FittedBox(
+                                              fit: BoxFit.cover,
+                                              child: SizedBox(
+                                                width:
+                                                    emotionProvider
+                                                        .cameraController!
+                                                        .value
+                                                        .previewSize
+                                                        ?.height ??
+                                                    1,
+                                                height:
+                                                    emotionProvider
+                                                        .cameraController!
+                                                        .value
+                                                        .previewSize
+                                                        ?.width ??
+                                                    1,
+                                                child: CameraPreview(
+                                                  emotionProvider
+                                                      .cameraController!,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+
+                                          // Detection Overlay
+                                          if (emotionProvider.isDetecting)
+                                            _buildDetectionOverlay(),
+
+                                          // Ripple Effect
+                                          AnimatedBuilder(
+                                            animation: _rippleController,
+                                            builder: (context, child) {
+                                              return CustomPaint(
+                                                painter: _RipplePainter(
+                                                  animation: _rippleController,
+                                                  color:
+                                                      AppTheme
+                                                          .emotionColors[emotionProvider
+                                                          .currentEmotion] ??
+                                                      Colors.white,
+                                                ),
+                                                size: Size.infinite,
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      )
+                                    : _buildCameraPlaceholder(emotionProvider),
+                              ),
+                            )
+                            .animate()
+                            .scale(
+                              delay: 200.ms,
+                              duration: 800.ms,
+                              curve: Curves.elasticOut,
+                            )
+                            .fadeIn(),
                   ),
 
                   const SizedBox(height: AppConstants.paddingLarge),
@@ -202,31 +285,49 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen> with Ti
                   // Emotion Detection Card
                   Expanded(
                     flex: 2,
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
-                      child: EmotionDetectionCard(
-                        emotion: emotionProvider.currentEmotion,
-                        confidence: emotionProvider.confidence,
-                        isDetecting: emotionProvider.isDetecting,
-                        motivationalMessage: emotionProvider.getMotivationalMessage(),
-                        onSave: () => _showSaveEmotionDialog(emotionProvider),
-                        onToggleDetection: () async {
-                          if (emotionProvider.isDetecting) {
-                            await emotionProvider.stopEmotionDetection();
-                          } else {
-                            if (!emotionProvider.isModelLoaded) {
-                              await emotionProvider.loadModel();
-                            }
-                            if (!emotionProvider.isCameraInitialized) {
-                              await emotionProvider.initializeCamera(widget.cameras);
-                            }
-                            if (emotionProvider.isModelLoaded && emotionProvider.isCameraInitialized) {
-                              await emotionProvider.startEmotionDetection();
-                            }
-                          }
-                        },
-                      ),
-                    ).animate().slideY(begin: 0.5, delay: 400.ms, duration: 600.ms, curve: Curves.easeOutBack).fadeIn(delay: 400.ms),
+                    child:
+                        Container(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: AppConstants.paddingLarge,
+                              ),
+                              child: EmotionDetectionCard(
+                                emotion: emotionProvider.currentEmotion,
+                                confidence: emotionProvider.confidence,
+                                isDetecting: emotionProvider.isDetecting,
+                                motivationalMessage: emotionProvider
+                                    .getMotivationalMessage(),
+                                onSave: () =>
+                                    _showSaveEmotionDialog(emotionProvider),
+                                onToggleDetection: () async {
+                                  if (emotionProvider.isDetecting) {
+                                    await emotionProvider
+                                        .stopEmotionDetection();
+                                  } else {
+                                    if (!emotionProvider.isModelLoaded) {
+                                      await emotionProvider.loadModel();
+                                    }
+                                    if (!emotionProvider.isCameraInitialized) {
+                                      await emotionProvider.initializeCamera(
+                                        widget.cameras,
+                                      );
+                                    }
+                                    if (emotionProvider.isModelLoaded &&
+                                        emotionProvider.isCameraInitialized) {
+                                      await emotionProvider
+                                          .startEmotionDetection();
+                                    }
+                                  }
+                                },
+                              ),
+                            )
+                            .animate()
+                            .slideY(
+                              begin: 0.5,
+                              delay: 400.ms,
+                              duration: 600.ms,
+                              curve: Curves.easeOutBack,
+                            )
+                            .fadeIn(delay: 400.ms),
                   ),
 
                   const SizedBox(height: AppConstants.paddingLarge),
@@ -245,7 +346,11 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen> with Ti
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Colors.transparent, Colors.black.withOpacity(0.1), Colors.black.withOpacity(0.3)],
+          colors: [
+            Colors.transparent,
+            Colors.black.withOpacity(0.1),
+            Colors.black.withOpacity(0.3),
+          ],
           stops: const [0.6, 0.8, 1.0],
         ),
       ),
@@ -256,14 +361,31 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen> with Ti
             animation: _pulseController,
             builder: (context, child) {
               return Positioned(
-                top: MediaQuery.of(context).size.height * 0.3 * _pulseController.value,
+                top:
+                    MediaQuery.of(context).size.height *
+                    0.3 *
+                    _pulseController.value,
                 left: 0,
                 right: 0,
                 child: Container(
                   height: 2,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [Colors.transparent, AppTheme.accentColor, Colors.transparent]),
-                    boxShadow: [BoxShadow(color: AppTheme.accentColor.withOpacity(0.6), blurRadius: 10, spreadRadius: 2)],
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        AppTheme.accentColor,
+                        Colors.transparent,
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.accentColor.withAlpha(
+                          (0.6 * 255).toInt(),
+                        ),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -271,10 +393,26 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen> with Ti
           ),
 
           // Detection corners
-          Positioned(top: 40, left: 40, child: _buildCornerIndicator(true, true)),
-          Positioned(top: 40, right: 40, child: _buildCornerIndicator(true, false)),
-          Positioned(bottom: 40, left: 40, child: _buildCornerIndicator(false, true)),
-          Positioned(bottom: 40, right: 40, child: _buildCornerIndicator(false, false)),
+          Positioned(
+            top: 40,
+            left: 40,
+            child: _buildCornerIndicator(true, true),
+          ),
+          Positioned(
+            top: 40,
+            right: 40,
+            child: _buildCornerIndicator(true, false),
+          ),
+          Positioned(
+            bottom: 40,
+            left: 40,
+            child: _buildCornerIndicator(false, true),
+          ),
+          Positioned(
+            bottom: 40,
+            right: 40,
+            child: _buildCornerIndicator(false, false),
+          ),
         ],
       ),
     );
@@ -286,10 +424,18 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen> with Ti
       height: 30,
       decoration: BoxDecoration(
         border: Border(
-          top: isTop ? const BorderSide(color: AppTheme.accentColor, width: 3) : BorderSide.none,
-          bottom: !isTop ? const BorderSide(color: AppTheme.accentColor, width: 3) : BorderSide.none,
-          left: isLeft ? const BorderSide(color: AppTheme.accentColor, width: 3) : BorderSide.none,
-          right: !isLeft ? const BorderSide(color: AppTheme.accentColor, width: 3) : BorderSide.none,
+          top: isTop
+              ? const BorderSide(color: AppTheme.accentColor, width: 3)
+              : BorderSide.none,
+          bottom: !isTop
+              ? const BorderSide(color: AppTheme.accentColor, width: 3)
+              : BorderSide.none,
+          left: isLeft
+              ? const BorderSide(color: AppTheme.accentColor, width: 3)
+              : BorderSide.none,
+          right: !isLeft
+              ? const BorderSide(color: AppTheme.accentColor, width: 3)
+              : BorderSide.none,
         ),
       ),
     );
@@ -299,7 +445,8 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen> with Ti
     String statusText = 'Initializing...';
     IconData statusIcon = Icons.hourglass_empty;
 
-    if (!emotionProvider.isModelLoaded && !emotionProvider.isCameraInitialized) {
+    if (!emotionProvider.isModelLoaded &&
+        !emotionProvider.isCameraInitialized) {
       statusText = 'Loading model and camera...';
       statusIcon = Icons.download;
     } else if (!emotionProvider.isModelLoaded) {
@@ -323,10 +470,23 @@ class _EmotionDetectionScreenState extends State<EmotionDetectionScreen> with Ti
             const SizedBox(height: 16),
             Text(
               statusText,
-              style: const TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w500),
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.center,
             ),
-            if (emotionProvider.errorMessage != null) ...[const SizedBox(height: 8), Text('Tap to retry', style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 14))],
+            if (emotionProvider.errorMessage != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Tap to retry',
+                style: TextStyle(
+                  color: Colors.white.withAlpha((0.5 * 255).toInt()),
+                  fontSize: 14,
+                ),
+              ),
+            ],
           ],
         ),
       ),

@@ -8,6 +8,7 @@ import 'package:moodscope/features/diary/providers/diary_provider.dart';
 import 'package:moodscope/features/music/providers/music_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:camera/camera.dart';
+import 'package:toastification/toastification.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
@@ -32,7 +33,10 @@ void main() async {
   }
 
   // Set preferred orientations
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   runApp(const EmotionWellbeingApp());
 }
@@ -42,15 +46,24 @@ class EmotionWellbeingApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => EmotionProvider()), // Uncommented this
-        ChangeNotifierProvider(create: (_) => DiaryProvider()),
-        ChangeNotifierProvider(create: (_) => DashboardProvider()),
-        ChangeNotifierProvider(create: (_) => MusicProvider()),
-      ],
-      child: MaterialApp(title: AppConstants.appName, theme: AppTheme.lightTheme, debugShowCheckedModeBanner: false, home: const SplashScreen()),
+    return ToastificationWrapper(
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider(
+            create: (_) => EmotionProvider(),
+          ), // Uncommented this
+          ChangeNotifierProvider(create: (_) => DiaryProvider()),
+          ChangeNotifierProvider(create: (_) => DashboardProvider()),
+          ChangeNotifierProvider(create: (_) => MusicProvider()),
+        ],
+        child: MaterialApp(
+          title: AppConstants.appName,
+          theme: AppTheme.lightTheme,
+          debugShowCheckedModeBanner: false,
+          home: const SplashScreen(),
+        ),
+      ),
     );
   }
 }
