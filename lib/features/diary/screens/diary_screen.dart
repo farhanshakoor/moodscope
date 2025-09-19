@@ -5,6 +5,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:moodscope/core/utils/toast_utils.dart';
 import 'package:moodscope/features/diary/widgets/add_diary_dialog.dart';
 import 'package:moodscope/features/diary/widgets/diary_entry_card.dart';
+import 'package:moodscope/features/emotion_detection/models/emotion_entry.dart';
+import 'package:moodscope/features/emotion_detection/providers/emotion_provider.dart'; // Import EmotionProvider
+import 'package:moodscope/features/emotion_detection/widgets/emotion_entry_card.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -19,14 +22,23 @@ class DiaryScreen extends StatefulWidget {
   State<DiaryScreen> createState() => _DiaryScreenState();
 }
 
-class _DiaryScreenState extends State<DiaryScreen> {
+class _DiaryScreenState extends State<DiaryScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedMoodFilter = 'all';
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -35,7 +47,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
       context: context,
       builder: (context) => AddDiaryDialog(
         onSave: (title, content, mood, tags) async {
-          if (!mounted) return; // Check if widget is still mounted
+          if (!mounted) return;
 
           final diaryProvider = context.read<DiaryProvider>();
           final success = await diaryProvider.addDiaryEntry(
@@ -131,6 +143,23 @@ class _DiaryScreenState extends State<DiaryScreen> {
                 .slideY(begin: -0.5, duration: 600.ms, curve: Curves.easeOut)
                 .fadeIn(),
 
+            // Tab Bar
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppConstants.paddingLarge,
+              ),
+              child: TabBar(
+                controller: _tabController,
+                labelColor: AppTheme.primaryColor,
+                unselectedLabelColor: AppTheme.textTertiary,
+                indicatorColor: AppTheme.primaryColor,
+                tabs: const [
+                  Tab(text: 'Diary Entries'),
+                  Tab(text: 'Emotion Entries'),
+                ],
+              ),
+            ),
+
             // Search and Filter Section
             Padding(
                   padding: const EdgeInsets.symmetric(
@@ -161,7 +190,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
                             });
                           },
                           decoration: InputDecoration(
-                            hintText: 'Search your diary...',
+                            hintText: 'Search entries...',
                             prefixIcon: const Icon(
                               Icons.search_rounded,
                               color: AppTheme.textSecondary,
@@ -178,9 +207,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 16),
-
                       // Mood Filter
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -221,143 +248,315 @@ class _DiaryScreenState extends State<DiaryScreen> {
 
             const SizedBox(height: AppConstants.paddingLarge),
 
-            // Diary Entries List
+            // Tab Bar View
             Expanded(
-              child: Consumer<DiaryProvider>(
-                builder: (context, diaryProvider, child) {
-                  return StreamBuilder<List<DiaryEntry>>(
-                    stream: diaryProvider.getDiaryEntriesStream(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: AppTheme.primaryColor,
-                          ),
-                        );
-                      }
-
-                      if (snapshot.hasError) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.error_outline_rounded,
-                                size: 64,
-                                color: Colors.red.shade300,
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // Diary Entries Tab
+                  Consumer<DiaryProvider>(
+                    builder: (context, diaryProvider, child) {
+                      return StreamBuilder<List<DiaryEntry>>(
+                        stream: diaryProvider.getDiaryEntriesStream(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: AppTheme.primaryColor,
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Error loading diary entries',
-                                style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(color: AppTheme.textSecondary),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
+                            );
+                          }
 
-                      List<DiaryEntry> entries = snapshot.data ?? [];
-
-                      // Apply filters
-                      if (_searchQuery.isNotEmpty) {
-                        entries = entries
-                            .where(
-                              (entry) =>
-                                  entry.title.toLowerCase().contains(
-                                    _searchQuery.toLowerCase(),
-                                  ) ||
-                                  entry.content.toLowerCase().contains(
-                                    _searchQuery.toLowerCase(),
-                                  ) ||
-                                  entry.tags.any(
-                                    (tag) => tag.toLowerCase().contains(
-                                      _searchQuery.toLowerCase(),
-                                    ),
+                          if (snapshot.hasError) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.error_outline_rounded,
+                                    size: 64,
+                                    color: Colors.red.shade300,
                                   ),
-                            )
-                            .toList();
-                      }
-
-                      if (_selectedMoodFilter != 'all') {
-                        entries = entries
-                            .where((entry) => entry.mood == _selectedMoodFilter)
-                            .toList();
-                      }
-
-                      if (entries.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.book_outlined,
-                                size: 64,
-                                color: AppTheme.textTertiary,
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Error loading diary entries',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                          color: AppTheme.textSecondary,
+                                        ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                _searchQuery.isNotEmpty ||
-                                        _selectedMoodFilter != 'all'
-                                    ? 'No entries found'
-                                    : 'No diary entries yet',
-                                style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(color: AppTheme.textSecondary),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                _searchQuery.isNotEmpty ||
-                                        _selectedMoodFilter != 'all'
-                                    ? 'Try different search terms or filters'
-                                    : 'Start writing your emotional journey',
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(color: AppTheme.textTertiary),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
+                            );
+                          }
 
-                      return ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppConstants.paddingLarge,
-                        ),
-                        itemCount: entries.length,
-                        itemBuilder: (context, index) {
-                          final entry = entries[index];
-                          return DiaryEntryCard(
-                                entry: entry,
-                                onEdit: () {},
-                                onDelete: () async {
-                                  final shouldDelete =
-                                      await _showDeleteConfirmation(context);
-                                  if (shouldDelete == true && mounted) {
-                                    final success = await diaryProvider
-                                        .deleteDiaryEntry(entry.id);
-                                    if (success && mounted) {
-                                      ToastUtils.showSuccessToast(
-                                        message: 'Diary entry deleted',
-                                        context: context,
-                                      );
-                                    }
-                                  }
-                                },
-                              )
-                              .animate()
-                              .slideX(
-                                begin: 0.3,
-                                delay: Duration(milliseconds: index * 100),
-                                duration: 500.ms,
-                                curve: Curves.easeOut,
-                              )
-                              .fadeIn(
-                                delay: Duration(milliseconds: index * 100),
-                              );
+                          List<DiaryEntry> entries = snapshot.data ?? [];
+
+                          // Apply filters
+                          if (_searchQuery.isNotEmpty) {
+                            entries = entries
+                                .where(
+                                  (entry) =>
+                                      entry.title.toLowerCase().contains(
+                                        _searchQuery.toLowerCase(),
+                                      ) ||
+                                      entry.content.toLowerCase().contains(
+                                        _searchQuery.toLowerCase(),
+                                      ) ||
+                                      entry.tags.any(
+                                        (tag) => tag.toLowerCase().contains(
+                                          _searchQuery.toLowerCase(),
+                                        ),
+                                      ),
+                                )
+                                .toList();
+                          }
+
+                          if (_selectedMoodFilter != 'all') {
+                            entries = entries
+                                .where(
+                                  (entry) => entry.mood == _selectedMoodFilter,
+                                )
+                                .toList();
+                          }
+
+                          if (entries.isEmpty) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.book_outlined,
+                                    size: 64,
+                                    color: AppTheme.textTertiary,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    _searchQuery.isNotEmpty ||
+                                            _selectedMoodFilter != 'all'
+                                        ? 'No diary entries found'
+                                        : 'No diary entries yet',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                          color: AppTheme.textSecondary,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _searchQuery.isNotEmpty ||
+                                            _selectedMoodFilter != 'all'
+                                        ? 'Try different search terms or filters'
+                                        : 'Start writing your emotional journey',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: AppTheme.textTertiary,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+
+                          return ListView.builder(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppConstants.paddingLarge,
+                            ),
+                            itemCount: entries.length,
+                            itemBuilder: (context, index) {
+                              final entry = entries[index];
+                              return DiaryEntryCard(
+                                    entry: entry,
+                                    onEdit: () {},
+                                    onDelete: () async {
+                                      final shouldDelete =
+                                          await _showDeleteConfirmation(
+                                            context,
+                                          );
+                                      if (shouldDelete == true && mounted) {
+                                        final success = await diaryProvider
+                                            .deleteDiaryEntry(entry.id);
+                                        if (success && mounted) {
+                                          ToastUtils.showSuccessToast(
+                                            message: 'Diary entry deleted',
+                                            context: context,
+                                          );
+                                        }
+                                      }
+                                    },
+                                  )
+                                  .animate()
+                                  .slideX(
+                                    begin: 0.3,
+                                    delay: Duration(milliseconds: index * 100),
+                                    duration: 500.ms,
+                                    curve: Curves.easeOut,
+                                  )
+                                  .fadeIn(
+                                    delay: Duration(milliseconds: index * 100),
+                                  );
+                            },
+                          );
                         },
                       );
                     },
-                  );
-                },
+                  ),
+                  // Emotion Entries Tab
+                  Consumer<EmotionProvider>(
+                    builder: (context, emotionProvider, child) {
+                      return StreamBuilder<List<EmotionEntry>>(
+                        stream: emotionProvider.getEmotionEntriesStream(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: AppTheme.primaryColor,
+                              ),
+                            );
+                          }
+
+                          if (snapshot.hasError) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.error_outline_rounded,
+                                    size: 64,
+                                    color: Colors.red.shade300,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Error loading emotion entries',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                          color: AppTheme.textSecondary,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+
+                          List<EmotionEntry> entries = snapshot.data ?? [];
+
+                          // Apply filters
+                          if (_searchQuery.isNotEmpty) {
+                            entries = entries
+                                .where(
+                                  (entry) =>
+                                      entry.emotion.toLowerCase().contains(
+                                        _searchQuery.toLowerCase(),
+                                      ) ||
+                                      (entry.note?.toLowerCase().contains(
+                                            _searchQuery.toLowerCase(),
+                                          ) ??
+                                          false),
+                                )
+                                .toList();
+                          }
+
+                          if (_selectedMoodFilter != 'all') {
+                            entries = entries
+                                .where(
+                                  (entry) =>
+                                      entry.emotion == _selectedMoodFilter,
+                                )
+                                .toList();
+                          }
+
+                          if (entries.isEmpty) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.mood,
+                                    size: 64,
+                                    color: AppTheme.textTertiary,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    _searchQuery.isNotEmpty ||
+                                            _selectedMoodFilter != 'all'
+                                        ? 'No emotion entries found'
+                                        : 'No emotion entries yet',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                          color: AppTheme.textSecondary,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _searchQuery.isNotEmpty ||
+                                            _selectedMoodFilter != 'all'
+                                        ? 'Try different search terms or filters'
+                                        : 'Capture your emotions to start',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: AppTheme.textTertiary,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+
+                          return ListView.builder(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppConstants.paddingLarge,
+                            ),
+                            itemCount: entries.length,
+                            itemBuilder: (context, index) {
+                              final entry = entries[index];
+                              return EmotionEntryCard(
+                                    entry: entry,
+                                    onDelete: () async {
+                                      final shouldDelete =
+                                          await _showDeleteConfirmation(
+                                            context,
+                                          );
+                                      if (shouldDelete == true && mounted) {
+                                        // final success = await emotionProvider.deleteEmotionEntry(entry.id);
+                                        // if (success && mounted) {
+                                        //   ToastUtils.showSuccessToast(
+                                        //     message: 'Emotion entry deleted',
+                                        //     context: context,
+                                        //   );
+                                        // }
+                                      }
+                                    },
+                                  )
+                                  .animate()
+                                  .slideX(
+                                    begin: 0.3,
+                                    delay: Duration(milliseconds: index * 100),
+                                    duration: 500.ms,
+                                    curve: Curves.easeOut,
+                                  )
+                                  .fadeIn(
+                                    delay: Duration(milliseconds: index * 100),
+                                  );
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
           ],
@@ -372,7 +571,7 @@ class _DiaryScreenState extends State<DiaryScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Delete Entry'),
         content: const Text(
-          'Are you sure you want to delete this diary entry? This action cannot be undone.',
+          'Are you sure you want to delete this entry? This action cannot be undone.',
         ),
         actions: [
           TextButton(
