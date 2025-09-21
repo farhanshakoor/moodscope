@@ -5,6 +5,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:moodscope/features/auth/provider/auth_provider.dart';
 import 'package:moodscope/features/dashboard/providers/dashboard_provider.dart';
 import 'package:moodscope/features/diary/providers/diary_provider.dart';
+import 'package:moodscope/features/emotion_detection/providers/enhanced_emotion_provider.dart';
+import 'package:moodscope/features/music/providers/enhanced_music_provider.dart';
 import 'package:moodscope/features/music/providers/music_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:camera/camera.dart';
@@ -33,10 +35,7 @@ void main() async {
   }
 
   // Set preferred orientations
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 
   runApp(const EmotionWellbeingApp());
 }
@@ -50,19 +49,14 @@ class EmotionWellbeingApp extends StatelessWidget {
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => AuthProvider()),
-          ChangeNotifierProvider(
-            create: (_) => EmotionProvider(),
-          ), // Uncommented this
+          ChangeNotifierProvider(create: (_) => EmotionProvider()), // Uncommented this
           ChangeNotifierProvider(create: (_) => DiaryProvider()),
           ChangeNotifierProvider(create: (_) => DashboardProvider()),
           ChangeNotifierProvider(create: (_) => MusicProvider()),
+          ChangeNotifierProvider(create: (_) => EnhancedEmotionProvider()),
+          ChangeNotifierProvider(create: (_) => EnhancedMusicProvider()),
         ],
-        child: MaterialApp(
-          title: AppConstants.appName,
-          theme: AppTheme.lightTheme,
-          debugShowCheckedModeBanner: false,
-          home: const SplashScreen(),
-        ),
+        child: MaterialApp(title: AppConstants.appName, theme: AppTheme.lightTheme, debugShowCheckedModeBanner: false, home: const SplashScreen()),
       ),
     );
   }

@@ -30,9 +30,9 @@ class MusicTrackCard extends StatelessWidget {
               decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), gradient: AppTheme.primaryGradient),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: track.imageUrl.isNotEmpty
+                child: (track.imageUrl?.isNotEmpty ?? false)
                     ? Image.network(
-                        track.imageUrl,
+                        track.imageUrl!,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return _buildPlaceholderArt();
