@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:moodscope/features/music/service/spotify_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_constants.dart';
 import '../models/music_track.dart';
 import '../../emotion_detection/models/emotion_entry.dart';
@@ -89,7 +90,9 @@ class EnhancedMusicProvider extends ChangeNotifier {
       }
 
       // Analyze recent emotions to determine current mood
-      final recentEmotions = querySnapshot.docs.map((doc) => EmotionEntry.fromMap(doc.data())).toList();
+      final recentEmotions = querySnapshot.docs
+          .map((doc) => EmotionEntry.fromMap(doc.data()))
+          .toList();
 
       _lastEmotionCheck = DateTime.now();
 
@@ -107,7 +110,9 @@ class EnhancedMusicProvider extends ChangeNotifier {
       if ((emotionCounts[mostRecent] ?? 0) >= 2) {
         return mostRecent;
       } else {
-        final mostFrequent = emotionCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+        final mostFrequent = emotionCounts.entries
+            .reduce((a, b) => a.value > b.value ? a : b)
+            .key;
         return mostFrequent;
       }
     } catch (e) {
@@ -136,10 +141,15 @@ class EnhancedMusicProvider extends ChangeNotifier {
   // Get Spotify recommendations
   Future<void> _getSpotifyRecommendations(String emotion) async {
     try {
-      final tracks = await _spotifyService.getRecommendations(emotion, limit: 25);
+      final tracks = await _spotifyService.getRecommendations(
+        emotion,
+        limit: 25,
+      );
       _recommendations = tracks;
 
-      print('Loaded ${tracks.length} Spotify recommendations for $emotion emotion');
+      print(
+        'Loaded ${tracks.length} Spotify recommendations for $emotion emotion',
+      );
     } catch (e) {
       print('Spotify API error: $e');
       throw e;
@@ -170,7 +180,9 @@ class EnhancedMusicProvider extends ChangeNotifier {
       _loadingPlaylists = true;
       notifyListeners();
 
-      _featuredPlaylists = await _spotifyService.getFeaturedPlaylists(limit: 10);
+      _featuredPlaylists = await _spotifyService.getFeaturedPlaylists(
+        limit: 10,
+      );
     } catch (e) {
       print('Error loading featured playlists: $e');
     } finally {
@@ -195,7 +207,10 @@ class EnhancedMusicProvider extends ChangeNotifier {
       if (emotionPattern['secondaryEmotions'].isNotEmpty) {
         for (String secondaryEmotion in emotionPattern['secondaryEmotions']) {
           try {
-            final additionalTracks = await _spotifyService.getRecommendations(secondaryEmotion, limit: 5);
+            final additionalTracks = await _spotifyService.getRecommendations(
+              secondaryEmotion,
+              limit: 5,
+            );
             _recommendations.addAll(additionalTracks);
           } catch (e) {
             print('Error getting secondary emotion tracks: $e');
@@ -231,7 +246,10 @@ class EnhancedMusicProvider extends ChangeNotifier {
       final querySnapshot = await _firestore
           .collection(AppConstants.emotionEntriesCollection)
           .where('userId', isEqualTo: user.uid)
-          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(lastWeek))
+          .where(
+            'timestamp',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(lastWeek),
+          )
           .orderBy('timestamp', descending: true)
           .get();
 
@@ -251,7 +269,9 @@ class EnhancedMusicProvider extends ChangeNotifier {
         final daysSince = DateTime.now().difference(entry.timestamp).inDays;
         final weight = 1.0 / (daysSince + 1); // More recent = higher weight
 
-        emotionWeightedScores[entry.emotion] = (emotionWeightedScores[entry.emotion] ?? 0) + (weight * entry.confidence / 100);
+        emotionWeightedScores[entry.emotion] =
+            (emotionWeightedScores[entry.emotion] ?? 0) +
+            (weight * entry.confidence / 100);
       }
 
       // Find dominant emotion
@@ -267,12 +287,19 @@ class EnhancedMusicProvider extends ChangeNotifier {
 
       // Find secondary emotions (those with significant presence)
       final secondaryEmotions = emotionWeightedScores.entries
-          .where((entry) => entry.key != dominantEmotion && entry.value > (highestScore * 0.3)) // At least 30% of dominant emotion's score
+          .where(
+            (entry) =>
+                entry.key != dominantEmotion &&
+                entry.value > (highestScore * 0.3),
+          ) // At least 30% of dominant emotion's score
           .map((entry) => entry.key)
           .take(2) // Limit to 2 secondary emotions
           .toList();
 
-      return {'dominantEmotion': dominantEmotion, 'secondaryEmotions': secondaryEmotions};
+      return {
+        'dominantEmotion': dominantEmotion,
+        'secondaryEmotions': secondaryEmotions,
+      };
     } catch (e) {
       print('Error analyzing emotion pattern: $e');
       return {'dominantEmotion': 'neutral', 'secondaryEmotions': <String>[]};
@@ -283,28 +310,108 @@ class EnhancedMusicProvider extends ChangeNotifier {
   List<MusicTrack> _generateFallbackRecommendations(String emotion) {
     final mockTracks = <String, List<Map<String, String>>>{
       'happy': [
-        {'title': 'Good as Hell', 'artist': 'Lizzo', 'album': 'Cuz I Love You', 'duration': '3:39'},
-        {'title': 'Happy', 'artist': 'Pharrell Williams', 'album': 'Despicable Me 2', 'duration': '3:53'},
-        {'title': 'Can\'t Stop the Feeling!', 'artist': 'Justin Timberlake', 'album': 'Trolls', 'duration': '3:56'},
-        {'title': 'Uptown Funk', 'artist': 'Mark Ronson ft. Bruno Mars', 'album': 'Uptown Special', 'duration': '4:30'},
+        {
+          'title': 'Good as Hell',
+          'artist': 'Lizzo',
+          'album': 'Cuz I Love You',
+          'duration': '3:39',
+        },
+        {
+          'title': 'Happy',
+          'artist': 'Pharrell Williams',
+          'album': 'Despicable Me 2',
+          'duration': '3:53',
+        },
+        {
+          'title': 'Can\'t Stop the Feeling!',
+          'artist': 'Justin Timberlake',
+          'album': 'Trolls',
+          'duration': '3:56',
+        },
+        {
+          'title': 'Uptown Funk',
+          'artist': 'Mark Ronson ft. Bruno Mars',
+          'album': 'Uptown Special',
+          'duration': '4:30',
+        },
       ],
       'sad': [
-        {'title': 'Someone Like You', 'artist': 'Adele', 'album': '21', 'duration': '4:45'},
-        {'title': 'Mad World', 'artist': 'Gary Jules', 'album': 'Donnie Darko', 'duration': '3:07'},
-        {'title': 'Hurt', 'artist': 'Johnny Cash', 'album': 'American IV', 'duration': '3:38'},
-        {'title': 'Black', 'artist': 'Pearl Jam', 'album': 'Ten', 'duration': '5:43'},
+        {
+          'title': 'Someone Like You',
+          'artist': 'Adele',
+          'album': '21',
+          'duration': '4:45',
+        },
+        {
+          'title': 'Mad World',
+          'artist': 'Gary Jules',
+          'album': 'Donnie Darko',
+          'duration': '3:07',
+        },
+        {
+          'title': 'Hurt',
+          'artist': 'Johnny Cash',
+          'album': 'American IV',
+          'duration': '3:38',
+        },
+        {
+          'title': 'Black',
+          'artist': 'Pearl Jam',
+          'album': 'Ten',
+          'duration': '5:43',
+        },
       ],
       'angry': [
-        {'title': 'Break Stuff', 'artist': 'Limp Bizkit', 'album': 'Significant Other', 'duration': '2:47'},
-        {'title': 'Bodies', 'artist': 'Drowning Pool', 'album': 'Sinner', 'duration': '3:21'},
-        {'title': 'Chop Suey!', 'artist': 'System of a Down', 'album': 'Toxicity', 'duration': '3:30'},
-        {'title': 'One Step Closer', 'artist': 'Linkin Park', 'album': 'Hybrid Theory', 'duration': '2:36'},
+        {
+          'title': 'Break Stuff',
+          'artist': 'Limp Bizkit',
+          'album': 'Significant Other',
+          'duration': '2:47',
+        },
+        {
+          'title': 'Bodies',
+          'artist': 'Drowning Pool',
+          'album': 'Sinner',
+          'duration': '3:21',
+        },
+        {
+          'title': 'Chop Suey!',
+          'artist': 'System of a Down',
+          'album': 'Toxicity',
+          'duration': '3:30',
+        },
+        {
+          'title': 'One Step Closer',
+          'artist': 'Linkin Park',
+          'album': 'Hybrid Theory',
+          'duration': '2:36',
+        },
       ],
       'neutral': [
-        {'title': 'Weightless', 'artist': 'Marconi Union', 'album': 'Weightless', 'duration': '8:10'},
-        {'title': 'Clair de Lune', 'artist': 'Claude Debussy', 'album': 'Classical Essentials', 'duration': '5:05'},
-        {'title': 'Aqueous Transmission', 'artist': 'Incubus', 'album': 'Morning View', 'duration': '7:49'},
-        {'title': 'Porcelain', 'artist': 'Moby', 'album': 'Play', 'duration': '4:01'},
+        {
+          'title': 'Weightless',
+          'artist': 'Marconi Union',
+          'album': 'Weightless',
+          'duration': '8:10',
+        },
+        {
+          'title': 'Clair de Lune',
+          'artist': 'Claude Debussy',
+          'album': 'Classical Essentials',
+          'duration': '5:05',
+        },
+        {
+          'title': 'Aqueous Transmission',
+          'artist': 'Incubus',
+          'album': 'Morning View',
+          'duration': '7:49',
+        },
+        {
+          'title': 'Porcelain',
+          'artist': 'Moby',
+          'album': 'Play',
+          'duration': '4:01',
+        },
       ],
     };
 
@@ -317,7 +424,8 @@ class EnhancedMusicProvider extends ChangeNotifier {
             artist: track['artist']!,
             album: track['album']!,
             duration: track['duration']!,
-            imageUrl: 'https://via.placeholder.com/300x300/1DB954/FFFFFF?text=♪',
+            imageUrl:
+                'https://via.placeholder.com/300x300/1DB954/FFFFFF?text=♪',
             previewUrl: null,
           ),
         )
@@ -327,16 +435,33 @@ class EnhancedMusicProvider extends ChangeNotifier {
   // Play track (mock implementation - would integrate with actual player)
   Future<void> playTrack(MusicTrack track) async {
     try {
-      if (track.previewUrl != null) {
-        // In a real implementation, you would use an audio player
-        print('Playing preview: ${track.title} by ${track.artist}');
-        // Example: await audioPlayer.play(track.previewUrl!);
-      } else if (track.spotifyUrl != null) {
-        // Open in Spotify app or web player
-        print('Opening in Spotify: ${track.spotifyUrl}');
-        // Example: await launchUrl(Uri.parse(track.spotifyUrl!));
-      } else {
+      final url = track.spotifyUrl ?? track.previewUrl;
+      if (url == null) {
         print('No playback options available for: ${track.title}');
+        return;
+      }
+
+      final uri = Uri.parse(url);
+
+      // Try external app first (Spotify)
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication, // tries Spotify app
+        );
+        print('Opening track in Spotify app: ${track.title}');
+      } else {
+        // Fallback to web browser
+        final browserLaunched = await launchUrl(
+          uri,
+          mode: LaunchMode.platformDefault,
+        );
+
+        if (!browserLaunched) {
+          print('Could not launch URL anywhere: $url');
+        } else {
+          print('Opened in browser: $url');
+        }
       }
     } catch (e) {
       print('Error playing track: $e');
@@ -344,7 +469,10 @@ class EnhancedMusicProvider extends ChangeNotifier {
   }
 
   // Save user's track interaction for future recommendations
-  Future<void> saveTrackInteraction(MusicTrack track, String interactionType) async {
+  Future<void> saveTrackInteraction(
+    MusicTrack track,
+    String interactionType,
+  ) async {
     try {
       final user = _auth.currentUser;
       if (user == null) return;

@@ -4,11 +4,26 @@ class AppConstants {
   static const String appVersion = '1.0.0';
 
   // Emotion Labels (matching your TFLite model)
-  static const List<String> emotionLabels = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprised'];
+  static const List<String> emotionLabels = [
+    'angry',
+    'disgust',
+    'fear',
+    'happy',
+    'neutral',
+    'sad',
+    'surprised',
+  ];
 
   // Emotion Emojis
-  static const Map<String, String> emotionEmojis = {'happy': '😊', 'sad': '😢', 'angry': '😠', 'neutral': '😐', 'surprised': '😲', 'fear': '😨', 'disgust': '🤢'};
-
+  static const Map<String, String> emotionEmojis = {
+    'angry': '😠',
+    'disgust': '🤢',
+    'fear': '😨',
+    'happy': '😊',
+    'neutral': '😐',
+    'sad': '😢',
+    'surprised': '😲',
+  };
   // Firebase Collections
   static const String usersCollection = 'users';
   static const String emotionEntriesCollection = 'emotion_entries';
@@ -52,7 +67,12 @@ class AppConstants {
 
   // Motivational Messages
   static const Map<String, List<String>> emotionMessages = {
-    'happy': ["Keep shining bright! ✨", "Your happiness is contagious! 😊", "You're radiating positive energy!", "What a beautiful smile you have!"],
+    'happy': [
+      "Keep shining bright! ✨",
+      "Your happiness is contagious! 😊",
+      "You're radiating positive energy!",
+      "What a beautiful smile you have!",
+    ],
     'sad': [
       "It's okay to feel sad sometimes. You're not alone. 💙",
       "Tomorrow is a new day with new possibilities.",
@@ -71,7 +91,12 @@ class AppConstants {
       "You're grounded and centered today.",
       "Peace and calmness suit you well.",
     ],
-    'surprised': ["Life is full of wonderful surprises! 🎉", "Your curiosity makes you special!", "Embrace the unexpected moments!", "Surprise is the beginning of wonder!"],
+    'surprised': [
+      "Life is full of wonderful surprises! 🎉",
+      "Your curiosity makes you special!",
+      "Embrace the unexpected moments!",
+      "Surprise is the beginning of wonder!",
+    ],
     'fear': [
       "Courage isn't the absence of fear, but acting despite it. 🦁",
       "You're braver than you believe.",
@@ -91,25 +116,29 @@ class AppConstants {
     {
       'title': 'Welcome to MoodScope',
       'subtitle': 'Your personal emotion tracking companion',
-      'description': 'Discover patterns in your emotions and improve your mental well-being with AI-powered insights.',
+      'description':
+          'Discover patterns in your emotions and improve your mental well-being with AI-powered insights.',
       'image': 'assets/images/onboarding_1.png',
     },
     {
       'title': 'Track Your Emotions',
       'subtitle': 'Real-time emotion detection',
-      'description': 'Use your camera to detect emotions in real-time and build a comprehensive emotional diary.',
+      'description':
+          'Use your camera to detect emotions in real-time and build a comprehensive emotional diary.',
       'image': 'assets/images/onboarding_2.png',
     },
     {
       'title': 'Analyze Your Patterns',
       'subtitle': 'Insightful analytics dashboard',
-      'description': 'View beautiful charts and insights about your emotional patterns over time.',
+      'description':
+          'View beautiful charts and insights about your emotional patterns over time.',
       'image': 'assets/images/onboarding_3.png',
     },
     {
       'title': 'Music for Your Mood',
       'subtitle': 'Personalized music recommendations',
-      'description': 'Get music suggestions that match your current emotion and help improve your mood.',
+      'description':
+          'Get music suggestions that match your current emotion and help improve your mood.',
       'image': 'assets/images/onboarding_4.png',
     },
   ];

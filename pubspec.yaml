@@ -29,6 +29,7 @@ dependencies:
   # Camera & ML
   camera: ^0.11.2
   camera_android: ^0.10.10+7
+  image_picker:
 
   # tflite_v2:
   tflite_flutter: ^0.11.0
@@ -41,7 +42,7 @@ dependencies:
 
   # Music API
   http:
-  url_launcher:
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

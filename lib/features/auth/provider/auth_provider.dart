@@ -27,7 +27,7 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
-  void _setLoading(bool loading) {
+  void setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
   }
@@ -39,7 +39,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> signInWithEmail(String email, String password) async {
     try {
-      _setLoading(true);
+      setLoading(true);
       _setError(null);
 
       final UserCredential result = await _auth.signInWithEmailAndPassword(
@@ -59,7 +59,7 @@ class AuthProvider extends ChangeNotifier {
       _setError('An unexpected error occurred. Please try again.');
       return false;
     } finally {
-      _setLoading(false);
+      setLoading(false);
     }
   }
 
@@ -69,7 +69,7 @@ class AuthProvider extends ChangeNotifier {
     String name,
   ) async {
     try {
-      _setLoading(true);
+      setLoading(true);
       _setError(null);
 
       final UserCredential result = await _auth.createUserWithEmailAndPassword(
@@ -95,13 +95,13 @@ class AuthProvider extends ChangeNotifier {
       _setError('An unexpected error occurred. Please try again.');
       return false;
     } finally {
-      _setLoading(false);
+      setLoading(false);
     }
   }
 
   Future<void> signOut() async {
     try {
-      _setLoading(true);
+      setLoading(true);
       await _auth.signOut();
       // await _googleSignIn.signOut();
 
@@ -111,13 +111,13 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       _setError('Sign out failed. Please try again.');
     } finally {
-      _setLoading(false);
+      setLoading(false);
     }
   }
 
   Future<bool> resetPassword(String email) async {
     try {
-      _setLoading(true);
+      setLoading(true);
       _setError(null);
 
       await _auth.sendPasswordResetEmail(email: email.trim());
@@ -129,7 +129,7 @@ class AuthProvider extends ChangeNotifier {
       _setError('Failed to send reset email. Please try again.');
       return false;
     } finally {
-      _setLoading(false);
+      setLoading(false);
     }
   }
 

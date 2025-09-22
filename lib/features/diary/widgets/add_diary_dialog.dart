@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-
 import '../../../core/theme/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
+import '../models/diary_entry.dart';
 
 class AddDiaryDialog extends StatefulWidget {
-  final Function(String title, String content, String mood, List<String> tags) onSave;
+  final Function(String title, String content, String mood, List<String> tags)
+  onSave;
+  final DiaryEntry? entry;
 
-  const AddDiaryDialog({super.key, required this.onSave});
+  const AddDiaryDialog({super.key, required this.onSave, this.entry});
 
   @override
   State<AddDiaryDialog> createState() => _AddDiaryDialogState();
 }
 
-class _AddDiaryDialogState extends State<AddDiaryDialog> with SingleTickerProviderStateMixin {
+class _AddDiaryDialogState extends State<AddDiaryDialog>
+    with SingleTickerProviderStateMixin {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
   final _tagController = TextEditingController();
@@ -24,7 +27,16 @@ class _AddDiaryDialogState extends State<AddDiaryDialog> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    if (widget.entry != null) {
+      _titleController.text = widget.entry!.title;
+      _contentController.text = widget.entry!.content;
+      _selectedMood = widget.entry!.mood;
+      _tags = List.from(widget.entry!.tags);
+    }
     _animationController.forward();
   }
 
@@ -54,12 +66,22 @@ class _AddDiaryDialogState extends State<AddDiaryDialog> with SingleTickerProvid
   }
 
   void _saveDiary() {
-    if (_titleController.text.trim().isEmpty || _contentController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill in both title and content'), backgroundColor: Colors.red));
+    if (_titleController.text.trim().isEmpty ||
+        _contentController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in both title and content'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
-
-    widget.onSave(_titleController.text.trim(), _contentController.text.trim(), _selectedMood, _tags);
+    widget.onSave(
+      _titleController.text.trim(),
+      _contentController.text.trim(),
+      _selectedMood,
+      _tags,
+    );
     Navigator.of(context).pop();
   }
 
@@ -80,7 +102,13 @@ class _AddDiaryDialogState extends State<AddDiaryDialog> with SingleTickerProvid
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, spreadRadius: 5)],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    ),
+                  ],
                 ),
                 child: SingleChildScrollView(
                   child: Padding(
@@ -91,83 +119,156 @@ class _AddDiaryDialogState extends State<AddDiaryDialog> with SingleTickerProvid
                       children: [
                         // Header
                         Row(
-                          children: [
-                            Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(gradient: AppTheme.primaryGradient, borderRadius: BorderRadius.circular(25)),
-                              child: const Icon(Icons.book_rounded, color: Colors.white, size: 24),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('New Diary Entry', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                                  const SizedBox(height: 4),
-                                  Text('Capture your emotional moment', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary)),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ).animate().slideX(begin: -0.5, duration: 400.ms, curve: Curves.easeOut).fadeIn(),
-
+                              children: [
+                                Container(
+                                  width: 50,
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    gradient: AppTheme.primaryGradient,
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  child: const Icon(
+                                    Icons.book_rounded,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        widget.entry != null
+                                            ? 'Edit Diary Entry'
+                                            : 'New Diary Entry',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headlineSmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Capture your emotional moment',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: AppTheme.textSecondary,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            )
+                            .animate()
+                            .slideX(
+                              begin: -0.5,
+                              duration: 400.ms,
+                              curve: Curves.easeOut,
+                            )
+                            .fadeIn(),
                         const SizedBox(height: 24),
-
                         // Title Field
-                        Text('Title', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                        Text(
+                          'Title',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
                         const SizedBox(height: 8),
                         TextField(
-                          controller: _titleController,
-                          decoration: InputDecoration(
-                            hintText: 'Give your entry a title...',
-                            filled: true,
-                            fillColor: Colors.grey.shade50,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade200),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade200),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
-                            ),
-                          ),
-                        ).animate().slideY(begin: 0.3, delay: 200.ms, duration: 400.ms, curve: Curves.easeOut).fadeIn(delay: 200.ms),
-
+                              controller: _titleController,
+                              decoration: InputDecoration(
+                                hintText: 'Give your entry a title...',
+                                filled: true,
+                                fillColor: Colors.grey.shade50,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade200,
+                                  ),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade200,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                    color: AppTheme.primaryColor,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .animate()
+                            .slideY(
+                              begin: 0.3,
+                              delay: 200.ms,
+                              duration: 400.ms,
+                              curve: Curves.easeOut,
+                            )
+                            .fadeIn(delay: 200.ms),
                         const SizedBox(height: 20),
-
                         // Mood Selection
-                        Text('How are you feeling?', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                        Text(
+                          'How are you feeling?',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
                         const SizedBox(height: 12),
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
                           children: AppConstants.emotionLabels.map((emotion) {
                             final isSelected = _selectedMood == emotion;
-                            final emotionColor = AppTheme.emotionColors[emotion] ?? AppTheme.textTertiary;
-                            final emotionEmoji = AppConstants.emotionEmojis[emotion] ?? '😐';
-
+                            final emotionColor =
+                                AppTheme.emotionColors[emotion] ??
+                                AppTheme.textTertiary;
+                            final emotionEmoji =
+                                AppConstants.emotionEmojis[emotion] ?? '😐';
                             return GestureDetector(
-                              onTap: () => setState(() => _selectedMood = emotion),
+                              onTap: () =>
+                                  setState(() => _selectedMood = emotion),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? emotionColor.withOpacity(0.2) : Colors.grey.shade100,
+                                  color: isSelected
+                                      ? emotionColor.withOpacity(0.2)
+                                      : Colors.grey.shade100,
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: isSelected ? emotionColor : Colors.grey.shade300, width: isSelected ? 2 : 1),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? emotionColor
+                                        : Colors.grey.shade300,
+                                    width: isSelected ? 2 : 1,
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(emotionEmoji, style: const TextStyle(fontSize: 16)),
+                                    Text(
+                                      emotionEmoji,
+                                      style: const TextStyle(fontSize: 16),
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
                                       emotion,
-                                      style: TextStyle(fontWeight: FontWeight.w600, color: isSelected ? emotionColor : AppTheme.textPrimary),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected
+                                            ? emotionColor
+                                            : AppTheme.textPrimary,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -175,11 +276,13 @@ class _AddDiaryDialogState extends State<AddDiaryDialog> with SingleTickerProvid
                             );
                           }).toList(),
                         ),
-
                         const SizedBox(height: 20),
-
                         // Content Field
-                        Text('Your Story', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                        Text(
+                          'Your Story',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
                         const SizedBox(height: 8),
                         TextField(
                           controller: _contentController,
@@ -190,23 +293,32 @@ class _AddDiaryDialogState extends State<AddDiaryDialog> with SingleTickerProvid
                             fillColor: Colors.grey.shade50,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade200),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade200,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade200),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade200,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
+                              borderSide: const BorderSide(
+                                color: AppTheme.primaryColor,
+                                width: 2,
+                              ),
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 20),
-
                         // Tags Section
-                        Text('Tags', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                        Text(
+                          'Tags',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
                         const SizedBox(height: 8),
                         Row(
                           children: [
@@ -219,7 +331,9 @@ class _AddDiaryDialogState extends State<AddDiaryDialog> with SingleTickerProvid
                                   fillColor: Colors.grey.shade50,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(color: Colors.grey.shade200),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade200,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -229,7 +343,9 @@ class _AddDiaryDialogState extends State<AddDiaryDialog> with SingleTickerProvid
                               onPressed: _addTag,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.primaryColor,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                               child: const Text('Add'),
                             ),
@@ -238,22 +354,33 @@ class _AddDiaryDialogState extends State<AddDiaryDialog> with SingleTickerProvid
                         const SizedBox(height: 8),
                         Wrap(
                           spacing: 8,
-                          children: _tags.map((tag) => Chip(label: Text(tag), onDeleted: () => _removeTag(tag), deleteIcon: const Icon(Icons.close, size: 16))).toList(),
+                          children: _tags
+                              .map(
+                                (tag) => Chip(
+                                  label: Text(tag),
+                                  onDeleted: () => _removeTag(tag),
+                                  deleteIcon: const Icon(Icons.close, size: 16),
+                                ),
+                              )
+                              .toList(),
                         ),
-
                         const SizedBox(height: 24),
-
                         // Action Buttons
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Cancel'),
+                            ),
                             const SizedBox(width: 12),
                             ElevatedButton(
                               onPressed: _saveDiary,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.primaryColor,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                               child: const Text('Save'),
                             ),
