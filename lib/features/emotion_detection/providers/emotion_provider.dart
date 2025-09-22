@@ -580,6 +580,52 @@ class EmotionProvider extends ChangeNotifier {
     });
   }
 
+  // Update emotion entry
+  Future<bool> updateEmotionEntry(EmotionEntry entry) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        _setError('User not authenticated');
+        return false;
+      }
+
+      await _firestore
+          .collection(AppConstants.emotionEntriesCollection)
+          .doc(entry.id)
+          .update(entry.toMap());
+
+      if (_debugMode) print('Emotion entry updated: ${entry.id}');
+      return true;
+    } catch (e) {
+      if (_debugMode) print('Update error: $e');
+      _setError('Failed to update emotion entry: ${e.toString()}');
+      return false;
+    }
+  }
+
+  // Delete emotion entry
+  Future<bool> deleteEmotionEntry(String entryId) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        _setError('User not authenticated');
+        return false;
+      }
+
+      await _firestore
+          .collection(AppConstants.emotionEntriesCollection)
+          .doc(entryId)
+          .delete();
+
+      if (_debugMode) print('Emotion entry deleted: $entryId');
+      return true;
+    } catch (e) {
+      if (_debugMode) print('Delete error: $e');
+      _setError('Failed to delete emotion entry: ${e.toString()}');
+      return false;
+    }
+  }
+
   // Clear error
   void clearError() {
     _errorMessage = null;

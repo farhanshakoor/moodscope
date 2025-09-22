@@ -7,9 +7,15 @@ import 'package:moodscope/features/emotion_detection/models/emotion_entry.dart';
 
 class EmotionEntryCard extends StatelessWidget {
   final EmotionEntry entry;
+  final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
-  const EmotionEntryCard({super.key, required this.entry, this.onDelete});
+  const EmotionEntryCard({
+    super.key,
+    required this.entry,
+    this.onEdit,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -79,15 +85,28 @@ class EmotionEntryCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Delete Button
-                    if (onDelete != null)
-                      IconButton(
-                        onPressed: onDelete,
-                        icon: const Icon(
-                          Icons.delete_outline,
-                          color: Colors.red,
-                        ),
-                      ),
+                    // Action Buttons
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (onEdit != null)
+                          IconButton(
+                            onPressed: onEdit,
+                            icon: const Icon(
+                              Icons.edit_outlined,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                        if (onDelete != null)
+                          IconButton(
+                            onPressed: onDelete,
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.red,
+                            ),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),

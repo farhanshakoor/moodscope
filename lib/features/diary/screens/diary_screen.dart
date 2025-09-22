@@ -6,7 +6,7 @@ import 'package:moodscope/core/utils/toast_utils.dart';
 import 'package:moodscope/features/diary/widgets/add_diary_dialog.dart';
 import 'package:moodscope/features/diary/widgets/diary_entry_card.dart';
 import 'package:moodscope/features/emotion_detection/models/emotion_entry.dart';
-import 'package:moodscope/features/emotion_detection/providers/emotion_provider.dart'; // Import EmotionProvider
+import 'package:moodscope/features/emotion_detection/providers/emotion_provider.dart';
 import 'package:moodscope/features/emotion_detection/widgets/emotion_entry_card.dart';
 import 'package:provider/provider.dart';
 
@@ -42,26 +42,43 @@ class _DiaryScreenState extends State<DiaryScreen>
     super.dispose();
   }
 
-  void _showAddDiaryDialog() {
+  void _showAddDiaryDialog({DiaryEntry? entry}) {
     showDialog(
       context: context,
       builder: (context) => AddDiaryDialog(
+        entry: entry,
         onSave: (title, content, mood, tags) async {
           if (!mounted) return;
 
           final diaryProvider = context.read<DiaryProvider>();
-          final success = await diaryProvider.addDiaryEntry(
-            title: title,
-            content: content,
-            mood: mood,
-            tags: tags,
-          );
+          bool success;
+
+          if (entry != null) {
+            // Edit existing entry
+            final updatedEntry = entry.copyWith(
+              title: title,
+              content: content,
+              mood: mood,
+              tags: tags,
+            );
+            success = await diaryProvider.updateDiaryEntry(updatedEntry);
+          } else {
+            // Add new entry
+            success = await diaryProvider.addDiaryEntry(
+              title: title,
+              content: content,
+              mood: mood,
+              tags: tags,
+            );
+          }
 
           if (success && mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'Diary entry saved! ${AppConstants.emotionEmojis[mood] ?? ''}',
+                  entry != null
+                      ? 'Diary entry updated! ${AppConstants.emotionEmojis[mood] ?? ''}'
+                      : 'Diary entry saved! ${AppConstants.emotionEmojis[mood] ?? ''}',
                 ),
                 backgroundColor: AppTheme.primaryColor,
                 behavior: SnackBarBehavior.floating,
@@ -72,6 +89,52 @@ class _DiaryScreenState extends State<DiaryScreen>
             );
           }
         },
+      ),
+    );
+  }
+
+  void _showEditEmotionNoteDialog(EmotionEntry entry) {
+    final noteController = TextEditingController(text: entry.note ?? '');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Note'),
+        content: TextField(
+          controller: noteController,
+          decoration: const InputDecoration(
+            hintText: 'Add your thoughts...',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 4,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final emotionProvider = context.read<EmotionProvider>();
+              final success = await emotionProvider.updateEmotionEntry(
+                entry.copyWith(
+                  note: noteController.text.trim().isEmpty
+                      ? null
+                      : noteController.text.trim(),
+                ),
+              );
+
+              if (success && mounted) {
+                Navigator.of(context).pop();
+                ToastUtils.showSuccessToast(
+                  message: 'Emotion entry updated',
+                  context: context,
+                );
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }
@@ -124,7 +187,7 @@ class _DiaryScreenState extends State<DiaryScreen>
                           ],
                         ),
                         child: IconButton(
-                          onPressed: _showAddDiaryDialog,
+                          onPressed: () => _showAddDiaryDialog(),
                           icon: const Icon(
                             Icons.add_rounded,
                             color: Colors.white,
@@ -373,7 +436,8 @@ class _DiaryScreenState extends State<DiaryScreen>
                               final entry = entries[index];
                               return DiaryEntryCard(
                                     entry: entry,
-                                    onEdit: () {},
+                                    onEdit: () =>
+                                        _showAddDiaryDialog(entry: entry),
                                     onDelete: () async {
                                       final shouldDelete =
                                           await _showDeleteConfirmation(
@@ -524,19 +588,22 @@ class _DiaryScreenState extends State<DiaryScreen>
                               final entry = entries[index];
                               return EmotionEntryCard(
                                     entry: entry,
+                                    onEdit: () =>
+                                        _showEditEmotionNoteDialog(entry),
                                     onDelete: () async {
                                       final shouldDelete =
                                           await _showDeleteConfirmation(
                                             context,
                                           );
                                       if (shouldDelete == true && mounted) {
-                                        // final success = await emotionProvider.deleteEmotionEntry(entry.id);
-                                        // if (success && mounted) {
-                                        //   ToastUtils.showSuccessToast(
-                                        //     message: 'Emotion entry deleted',
-                                        //     context: context,
-                                        //   );
-                                        // }
+                                        final success = await emotionProvider
+                                            .deleteEmotionEntry(entry.id);
+                                        if (success && mounted) {
+                                          ToastUtils.showSuccessToast(
+                                            message: 'Emotion entry deleted',
+                                            context: context,
+                                          );
+                                        }
                                       }
                                     },
                                   )
